@@ -180,14 +180,26 @@ elif st.session_state.aio_stage == "detected":
                         out.write(st.session_state.aio_cutsheet_bytes[1])
 
                     if len(input_paths) == 1:
-                        xlsx_bytes, fname, info = aio.process_aio_validation(
+                        result = aio.process_aio_validation(
                             input_paths[0], cutsheet_path, override_processor=override
                         )
+                        # Current API returns (bytes, filename)
+                        if isinstance(result, tuple) and len(result) == 2:
+                            xlsx_bytes, fname = result
+                            info = {}
+                        else:
+                            xlsx_bytes, fname, info = result  # fallback for future
                         st.session_state.aio_result = (xlsx_bytes, fname, info, False)
                     else:
-                        zip_bytes, info = aio.process_multiple_aio_validation(
+                        result = aio.process_multiple_aio_validation(
                             input_paths, cutsheet_path, override_processor=override
                         )
+                        # Current API returns zip bytes
+                        if isinstance(result, (bytes, bytearray)):
+                            zip_bytes = result
+                            info = {}
+                        else:
+                            zip_bytes, info = result  # fallback
                         st.session_state.aio_result = (zip_bytes, "AIO_Formatted_Reports.zip", info, True)
 
                     st.session_state.aio_stage = "processed"
