@@ -177,7 +177,10 @@ def process_aio_validation(
         processor = gfab_logic.process_gfab_validation
         processor_name = "gfab (fallback)"
 
-    return processor(input_path, cutsheet_path)
+    result = processor(input_path, cutsheet_path)
+    if isinstance(result, tuple) and len(result) == 2:
+        return (*result, {})   # normalize to (bytes, name, info)
+    return result
 
 
 def process_multiple_aio_validation(
@@ -195,7 +198,10 @@ def process_multiple_aio_validation(
     multi_fn = getattr(processor, "process_multiple_files", None)
 
     if callable(multi_fn):
-        return multi_fn(input_paths, cutsheet_path)
+        result = multi_fn(input_paths, cutsheet_path)
+        if isinstance(result, (bytes, bytearray)):
+            return (result, "AIO_Formatted_Reports.zip", {})
+        return result
 
     # Fallback: process files one by one using the single-file function
     zip_buffer = io.BytesIO()
@@ -204,4 +210,4 @@ def process_multiple_aio_validation(
             data, name = process_aio_validation(path, cutsheet_path, override_processor)
             zf.writestr(name or f"report_{i}.xlsx", data)
     zip_buffer.seek(0)
-    return zip_buffer.getvalue()
+    return (zip_buffer.getvalue(), "AIO_Formatted_Reports.zip", {})
