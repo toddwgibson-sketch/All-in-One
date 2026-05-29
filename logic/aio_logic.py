@@ -1,9 +1,18 @@
 """
-jpb19_aio_logic.py
+aio_logic.py
 
 ALL-IN-ONE (AIO) Validation Formatter - Master Logic
 
 This is the universal entry point for any hall / any fabric type.
+
+IMPORTANT ARCHITECTURAL RULE:
+    Do NOT use multiprocessing, ProcessPoolExecutor, or concurrent.futures
+    in any processor. This app runs on Streamlit Cloud, which has limited /
+    problematic support for multiprocessing. It also breaks Streamlit's
+    session state model in many cases.
+
+    All heavy work must remain single-threaded / single-process.
+"""
 
 Core idea:
 - The CUTSHEET is the source of truth for "what kind of thing this is".
@@ -39,6 +48,7 @@ try:
     from . import hops_logic
     from . import cfab_logic
     from . import ipr_logic
+    from . import lv_portal_logic
 except ImportError as e:
     raise ImportError(f"Missing one of the specialized logic modules inside logic/: {e}")
 
@@ -118,6 +128,11 @@ def inspect_cutsheet(cutsheet_path: str) -> DetectionResult:
             result.hall = "JPB19"
         elif "jbp15" in fname:
             result.hall = "JBP15"
+        elif "t0" in fname and ("qfab" in fname or "host" in fname):
+            # Common pattern for JBP15 T0-to-Host work
+            if result.hall == "UNKNOWN":
+                result.hall = "JBP15"
+                reasons.append("Filename contains T0 + QFAB/Host pattern → assuming JBP15")
 
     # --- Fabric / Pathway type detection (most important) ---
     # Priority 1: Explicit signals (future-proof — user said the cutsheet will carry this)
@@ -159,10 +174,10 @@ def inspect_cutsheet(cutsheet_path: str) -> DetectionResult:
                 result.recommended_processor = "gfab"
                 reasons.append("GFAB / standard fabric indicators")
 
-        elif any(k in text_lower for k in ["lv portal", "t0-to-host", "t0 to host", "qfabt0"]):
-            result.fabric_type = "LV_PORTAL"
+        elif any(k in text_lower for k in ["lv portal", "t0-to-host", "t0 to host", "qfabt0", "t0 switch port"]):
+            result.fabric_type = "LV_PORTAL_T0"
             result.recommended_processor = "lv_portal"
-            reasons.append("LV Portal / T0-to-Host / QFAB T0 style detected")
+            reasons.append("Strong LV Portal T0-to-Host / QFAB T0 signals detected (T0 Switch Port, QFABT0toHOST, etc.)")
 
         # Additional patterns from the full collection of old scripts
         elif "optic errors" in text_lower and "fec_ber" in text_lower and "interface down" in text_lower:
@@ -171,6 +186,14 @@ def inspect_cutsheet(cutsheet_path: str) -> DetectionResult:
                 result.fabric_type = "LV_PORTAL"
                 result.recommended_processor = "lv_portal"
                 reasons.append("LV Portal classic sheet set (Optic Errors + FEC_BER + Interface Down)")
+
+    # Special case: JBP15 + heavy (GPU) sheets but also strong T0 signals in cutsheet
+    # This is the JBP15 T0-to-Host LV Portal style (not HOPS)
+    if result.hall == "JBP15" and "t0" in text_lower:
+        if result.fabric_type in ("UNKNOWN", "HOPS"):
+            result.fabric_type = "LV_PORTAL_T0"
+            result.recommended_processor = "lv_portal"
+            reasons.append("JBP15 + T0 signals detected → treating as T0-to-Host LV Portal (not HOPS)")
 
     # Sheet-name based fallback (very reliable for HOPS vs others)
     if result.fabric_type == "UNKNOWN":
@@ -227,7 +250,7 @@ _PROCESSORS: Dict[str, Callable] = {
     "hops": hops_logic.process_hops_validation,
     "cfab": cfab_logic.process_cfab_validation,
     "ipr": ipr_logic.process_ipr_validation,
-    # "lv_portal": ... (we can wire the JBP15 one later)
+    "lv_portal": lv_portal_logic.process_lv_portal_validation,   # now registered (stub that gives clear message)
 }
 
 
