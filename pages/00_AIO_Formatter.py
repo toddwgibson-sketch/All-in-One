@@ -153,8 +153,8 @@ elif st.session_state.aio_stage == "detected":
         processor_to_use = override or detection.recommended_processor
 
         # Guard for types that don't have full support yet
-        supported = ["gfab", "hops", "cfab", "ipr"]
-        if processor_to_use not in supported and processor_to_use != "lv_portal":
+        supported = ["gfab", "hops", "cfab", "ipr", "lv_portal"]
+        if processor_to_use not in supported:
             st.error(f"Processor '{processor_to_use}' is not yet fully wired in the AIO.")
             st.info("For JBP15 T0-to-Host / LV Portal reports, please use the dedicated tool in your JBP15 T0_to_Host folder for now.")
             if st.button("← Back to Upload"):
@@ -192,10 +192,13 @@ elif st.session_state.aio_stage == "detected":
                     st.session_state.aio_stage = "processed"
                     st.rerun()
 
+            except NotImplementedError as nie:
+                st.warning(str(nie))
+                st.info("Detection is now correct for JBP15 T0-to-Host / LV Portal reports. Full end-to-end generation is the next piece being integrated.")
             except Exception as proc_err:
                 st.error(f"Processing failed for this file type.")
                 st.exception(proc_err)
-                st.info("This combination of report + cutsheet is not yet fully supported in the AIO. Try a different override or use the specialized tool.")
+                st.info("This combination may not be fully supported yet. Try forcing a different processor in the Override dropdown.")
                 if st.button("← Back to Upload"):
                     for key in list(st.session_state.keys()):
                         if key.startswith("aio_"):
