@@ -27,6 +27,7 @@ from . import gfab_logic
 from . import hops_logic
 from . import cfab_logic
 from . import ipr_logic
+from . import lv_portal_logic
 
 __all__ = [
     "inspect_cutsheet",
