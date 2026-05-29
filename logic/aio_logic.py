@@ -191,16 +191,13 @@ def process_multiple_aio_validation(
     if processor is None:
         processor = gfab_logic.process_multiple_files
 
-    # Many processors have a multi-file version
-    if hasattr(processor, "__self__"):  # bound method case
-        multi_fn = getattr(processor.__self__, "process_multiple_files", None)
-    else:
-        multi_fn = getattr(processor, "process_multiple_files", None)
+    # Try to find a dedicated multi-file function on the processor module
+    multi_fn = getattr(processor, "process_multiple_files", None)
 
     if callable(multi_fn):
         return multi_fn(input_paths, cutsheet_path)
 
-    # Fallback: process one by one
+    # Fallback: process files one by one using the single-file function
     zip_buffer = io.BytesIO()
     with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zf:
         for i, path in enumerate(input_paths):
