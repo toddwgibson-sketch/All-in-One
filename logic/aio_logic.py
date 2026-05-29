@@ -117,18 +117,34 @@ def inspect_cutsheet(cutsheet_path: str) -> DetectionResult:
         result.recommended_processor = "lv_portal"
         reasons.append("T0-to-Host / LV Portal style detected")
 
+    elif "jbp15" in text_lower and ("t1" in text_lower and "t0" in text_lower):
+        # JBP15 T1-to-T0 or T0-to-T1 reports (Slack or LVV)
+        result.fabric_type = "LV_PORTAL_T1_T0"
+        result.recommended_processor = "lv_portal"
+        reasons.append("JBP15 T1-to-T0 style report detected (Slack or LVV Portal)")
+
     elif any(k in text_lower for k in ["gfab", "full_path_lldp"]):
         if result.fabric_type == "UNKNOWN":
             result.fabric_type = "GFAB"
             result.recommended_processor = "gfab"
             reasons.append("GFAB indicators found")
 
-    # Filename fallback for hall
+    # Filename fallback for hall + fabric type
     if result.hall == "UNKNOWN":
         if "jpb19" in fname:
             result.hall = "JPB19"
         elif "jbp15" in fname:
             result.hall = "JBP15"
+
+    if result.fabric_type == "UNKNOWN" and "jbp15" in fname:
+        if ("t1" in fname and "t0" in fname) or "t1tot0" in fname or "t1_to_t0" in fname:
+            result.fabric_type = "LV_PORTAL_T1_T0"
+            result.recommended_processor = "lv_portal"
+            reasons.append("Filename indicates JBP15 T1-to-T0 Slack report")
+        elif "t0" in fname:
+            result.fabric_type = "LV_PORTAL_T0"
+            result.recommended_processor = "lv_portal"
+            reasons.append("Filename indicates JBP15 T0 report")
 
     # Confidence
     confidence = 0.4
