@@ -121,10 +121,14 @@ elif st.session_state.aio_stage == "detected":
     st.subheader("Optional Override")
 
     processor_options = ["auto (use detection)", "gfab", "hops", "cfab", "ipr", "lv_portal"]
+    default_index = 0
+    if detection and detection.hall == "JBP15" and "lv_portal" in processor_options:
+        default_index = processor_options.index("lv_portal")
+
     chosen = st.selectbox(
         "Force a specific processor",
         processor_options,
-        index=0,
+        index=default_index,
         key="aio_override_select"
     )
 
@@ -137,6 +141,10 @@ elif st.session_state.aio_stage == "detected":
         supported = ["gfab", "hops", "cfab", "ipr", "lv_portal"]
         if processor_to_use not in supported:
             st.error(f"Processor '{processor_to_use}' is not yet fully wired in the AIO.")
+            if detection and detection.hall == "JBP15":
+                st.info("This appears to be a JBP15 T1-to-T0 or T0-to-Host report. Full support is being added to the AIO. Use your dedicated JBP15 tools for now.")
+            else:
+                st.info("Try selecting a different processor in the Override dropdown.")
             st.stop()
 
         with st.spinner(f"Running {processor_to_use} logic..."):
