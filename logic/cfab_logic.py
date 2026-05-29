@@ -1,7 +1,11 @@
 """
-jpb19_cfab_logic.py
+cfab_logic.py
 
-Full clean port of CFAB_CODE19NEW.py for JPB19.
+Full clean port of CFAB validation logic.
+
+ARCHITECTURAL RULE:
+    No multiprocessing allowed in any processor (breaks Streamlit Cloud).
+"""
 
 Implements the complete CFAB rack validation formatter:
   1. Split LLDP into Downlink + Mismatch
