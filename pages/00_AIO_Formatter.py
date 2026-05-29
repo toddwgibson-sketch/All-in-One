@@ -17,8 +17,10 @@ from pathlib import Path
 import tempfile
 import os
 
-# Add parent so we can import the logic package cleanly
-sys.path.append(str(Path(__file__).parent.parent))
+# Robust import for both local run and Streamlit Cloud
+root_dir = Path(__file__).parent.parent
+if str(root_dir) not in sys.path:
+    sys.path.insert(0, str(root_dir))
 
 try:
     from logic import aio_logic as aio
@@ -47,36 +49,41 @@ No more guessing which script to run.
 """)
 
 # =============================================================================
-# Uploads
+# Uploads (must be outside the form so the button can react to file selection)
+# =============================================================================
+col1, col2 = st.columns(2)
+
+with col1:
+    st.subheader("1. Raw Validation Files")
+    input_files = st.file_uploader(
+        "Upload one or more validation export files (.xlsx)",
+        type=["xlsx"],
+        accept_multiple_files=True,
+        key="aio_inputs",
+        help="These are the messy files coming out of the hall testing / Slack / LVV Portal"
+    )
+
+with col2:
+    st.subheader("2. Cutsheet (Required)")
+    cutsheet_file = st.file_uploader(
+        "The cutsheet that describes this fabric (this file tells the AIO what to do)",
+        type=["xlsx"],
+        key="aio_cutsheet",
+        help="The cutsheet contains the intelligence about hall, fabric type, and source system"
+    )
+
+# =============================================================================
+# Submit Button (inside a minimal form)
 # =============================================================================
 with st.form("aio_form", clear_on_submit=False):
-
-    col1, col2 = st.columns(2)
-
-    with col1:
-        st.subheader("1. Raw Validation Files")
-        input_files = st.file_uploader(
-            "Upload one or more validation export files (.xlsx)",
-            type=["xlsx"],
-            accept_multiple_files=True,
-            key="aio_inputs",
-            help="These are the messy files coming out of the hall testing / Slack / LVV Portal"
-        )
-
-    with col2:
-        st.subheader("2. Cutsheet (Required)")
-        cutsheet_file = st.file_uploader(
-            "The cutsheet that describes this fabric (this file tells the AIO what to do)",
-            type=["xlsx"],
-            key="aio_cutsheet",
-            help="The cutsheet contains the intelligence about hall, fabric type, and source system"
-        )
-
     submitted = st.form_submit_button(
         "🚀 Detect & Process (AIO)",
         type="primary",
         disabled=not (input_files and cutsheet_file)
     )
+
+if not (input_files and cutsheet_file):
+    st.info("Please upload at least one validation file and a cutsheet to enable the button above.")
 
 # =============================================================================
 # Processing + Detection
@@ -126,7 +133,7 @@ if submitted:
                 )
                 override = None if chosen == "auto (use detection)" else chosen
 
-                if st.form_submit_button("✅ Confirm and Generate Report", type="primary"):
+                if st.button("✅ Confirm and Generate Report", type="primary"):
                     with st.spinner(f"Running {chosen if override else detection.recommended_processor} logic..."):
                         if len(input_paths) == 1:
                             xlsx_bytes, fname, info = aio.process_aio_validation(
