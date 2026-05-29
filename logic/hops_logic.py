@@ -1,11 +1,15 @@
 """
-jpb19_hops_logic.py
+hops_logic.py
 
-Clean, importable core logic for the JPB19 HOPS/GPU Validation Formatter.
+Clean, importable core logic for HOPS/GPU Validation Formatter.
 
-This is the full rich port of HOPS CODE19.py (original ~33KB Tkinter script).
+This is the full rich port of HOPS CODE19.py.
 
 All UI, Tkinter file pickers, and side effects have been removed.
+
+ARCHITECTURAL RULE:
+    No multiprocessing allowed. Required for Streamlit Cloud.
+"""
 The module only contains pure transformation logic.
 
 Public API (use from Streamlit pages or tests):
