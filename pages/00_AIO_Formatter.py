@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #!/usr/bin/env python3
 """
 AIO Validation Formatter (All-In-One)
@@ -180,7 +181,7 @@ elif st.session_state.aio_stage == "detected":
 
                     if len(input_paths) == 1:
                         xlsx_bytes, fname, info = aio.process_aio_validation(
-                            input_paths, cutsheet_path, override_processor=override
+                            input_paths[0], cutsheet_path, override_processor=override
                         )
                         st.session_state.aio_result = (xlsx_bytes, fname, info, False)
                     else:
