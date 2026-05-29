@@ -1,27 +1,25 @@
 #!/usr/bin/env python3
 """
-JPB19 Reports - Home Page
+All In One Validation Formatter
 
-Unified Streamlit app for all JPB19 validation reporting tools.
+The master / universal tool for formatting validation reports from any hall.
 
 Run with:
-    streamlit run Home.py
-
-All tools follow the same clean architecture:
-- Heavy domain logic lives in *_logic.py (pure, testable, no UI)
-- Thin Streamlit pages live in pages/
+    streamlit run app.py
 """
 
 import streamlit as st
 import sys
 from pathlib import Path
 
-# Ensure logic package is importable when running as standalone app
-sys.path.append(str(Path(__file__).parent))
+# Robust import so it works both locally and on Streamlit Cloud
+root_dir = Path(__file__).parent
+if str(root_dir) not in sys.path:
+    sys.path.insert(0, str(root_dir))
 
 st.set_page_config(
-    page_title="JPB19 Reports",
-    page_icon="🏭",
+    page_title="All In One Validation Formatter",
+    page_icon="🧠",
     layout="wide"
 )
 
@@ -78,7 +76,7 @@ One tool. Every hall. Every type. Every source.
 All tools follow the same clean pattern:
 - Heavy domain logic lives in `*_logic.py` (pure, importable, testable)
 - UI pages are thin (uploads + forms + progress + downloads)
-- The AIO (`jpb19_aio_logic.py`) is the orchestrator on top
+- The AIO (`logic/aio_logic.py`) is the orchestrator on top
 
 **Status — The Master Tool**
 
@@ -137,24 +135,25 @@ if submitted_suggestion:
 *Submitted via All In One Validation Formatter*
 """
 
-        # ============================================================
-        # IMPORTANT: Update this with your actual GitHub repo name
-        # Example: "toddy/all-in-one-validation-formatter"
-        # ============================================================
-        repo = "toddwgibson-sketch/All-in-One"   # <--- CHANGE THIS!
-        
-        import urllib.parse
-        params = {
-            "title": f"[Suggestion] {suggestion_title}",
-            "body": body,
-            "labels": "enhancement"
-        }
-        query = urllib.parse.urlencode(params, quote_via=urllib.parse.quote)
-        issue_url = f"https://github.com/{repo}/issues/new?{query}"
+        repo = "YOUR_USERNAME/YOUR_REPO"   # <--- CHANGE THIS after pushing to GitHub!
 
-        st.success("Link generated!")
-        st.markdown(f"**Click here to open a pre-filled GitHub Issue:**")
-        st.markdown(f"[➡️ Open GitHub Issue with your suggestion]({issue_url})", unsafe_allow_html=True)
+        if "YOUR_USERNAME" in repo or "YOUR_REPO" in repo:
+            st.warning("⚠️ The GitHub repo placeholder hasn't been updated yet. Please edit `app.py` and set the correct repo name, then redeploy.")
+            st.code(f"repo = \"YOUR_USERNAME/YOUR_REPO\"", language="python")
+            st.info("Once updated, the suggestions form will generate real GitHub issue links.")
+        else:
+            import urllib.parse
+            params = {
+                "title": f"[Suggestion] {suggestion_title}",
+                "body": body,
+                "labels": "enhancement"
+            }
+            query = urllib.parse.urlencode(params, quote_via=urllib.parse.quote)
+            issue_url = f"https://github.com/{repo}/issues/new?{query}"
+
+            st.success("Link generated!")
+            st.markdown(f"**Click here to open a pre-filled GitHub Issue:**")
+            st.markdown(f"[➡️ Open GitHub Issue with your suggestion]({issue_url})", unsafe_allow_html=True)
 
         st.markdown("---")
         st.markdown("**Or copy the markdown below** and paste it into a new GitHub Issue manually:")
