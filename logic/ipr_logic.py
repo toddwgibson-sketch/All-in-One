@@ -1,7 +1,11 @@
 """
-jpb19_ipr_logic.py
+ipr_logic.py
 
-Full clean port of IPR CODE.py for JPB19.
+Full clean port of IPR combiner + enrichment logic.
+
+ARCHITECTURAL RULE:
+    No multiprocessing allowed (Streamlit Cloud requirement).
+"""
 
 Combines multiple per-building audit files, enriches with cutsheet data
 (PP, Other End, Other End Rack), applies pink styling on active columns,
