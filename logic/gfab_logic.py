@@ -1,10 +1,14 @@
 """
-jpb19_gfab_logic.py
+gfab_logic.py
 
-Clean, importable core logic for the JPB19 GFAB Validation Formatter.
+Clean, importable core logic for GFAB Validation Formatter.
 
-This module contains ZERO UI code (no Tkinter, no Streamlit, no file dialogs).
+This module contains ZERO UI code.
 It is designed to be called from the Streamlit page (or tests, notebooks, etc.).
+
+ARCHITECTURAL RULE:
+    No multiprocessing allowed. This app runs on Streamlit Cloud.
+"""
 
 All original GFAB formatting behaviour is preserved:
   - lldp split → Downlinks + Mismatches
