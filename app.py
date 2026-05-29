@@ -141,7 +141,7 @@ if submitted_suggestion:
         # IMPORTANT: Update this with your actual GitHub repo name
         # Example: "toddy/all-in-one-validation-formatter"
         # ============================================================
-        repo = "YOUR_USERNAME/YOUR_REPO"   # <--- CHANGE THIS!
+        repo = "toddwgibson-sketch/All-in-One"   # <--- CHANGE THIS!
         
         import urllib.parse
         params = {
